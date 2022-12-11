@@ -25,7 +25,7 @@ jobs:
   appleclang:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Fetch Boost superproject
       run: |
         cd ..
@@ -49,7 +49,7 @@ jobs:
   gcc5:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: egor-tensin/setup-gcc@v1
       with:
         version: 5
@@ -72,7 +72,7 @@ jobs:
   gcc10:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Fetch Boost superproject
       run: |
         cd ..
@@ -92,7 +92,7 @@ jobs:
   clang10:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Fetch Boost superproject
       run: |
         cd ..
@@ -108,3 +108,24 @@ jobs:
       run: |
         cd libs/histogram
         ../../b2 $B2_OPTS toolset=clang-10 cxxstd=17 variant=histogram_ubasan test//all
+
+
+  clang5:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Fetch Boost superproject
+      run: |
+        cd ..
+        git clone -b $GITHUB_BASE_REF --depth 5 https://github.com/boostorg/boost.git
+        cd boost
+        mv -f $GITHUB_WORKSPACE/* libs/histogram
+        git submodule update --init --depth 5 tools/build tools/boostdep
+        python tools/boostdep/depinst/depinst.py --git_args "--depth 5 --jobs 3" histogram
+        mv -f * $GITHUB_WORKSPACE
+    - name: Prepare b2
+      run: ./bootstrap.sh
+    - name: Test
+      run: |
+        cd libs/histogram
+        ../../b2 $B2_OPTS toolset=clang-5 cxxstd=17 test//all
